@@ -1,0 +1,8 @@
+{   
+
+    "tecnicas": {
+        "Naive Bayes":"naibay",
+        "Asociador Lineal":"asolin",
+        "KNN": "knn"     
+    }
+}
