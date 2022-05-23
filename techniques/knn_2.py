@@ -23,5 +23,5 @@ def knn(vectorP, dfDataset):
     print("Caso: ",vectorP)
     print("Clase: ",decisionClase)     
 
-    return(decisionClase)
+    return(vectorP,decisionClase)
 

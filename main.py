@@ -1,9 +1,14 @@
+from ast import While
 import sys
 import json
-from PyQt5 import uic, QtWidgets, QtCore
+from PyQt5 import uic, QtWidgets, QtCore, QtGui, QtNetwork
 import pandas as pd
 # Modulo/clase arduino
 import arduinoWind as ard
+from serpapi import GoogleSearch
+import random as rnd
+from random import randint
+import requests
 
 from techniques.knn_2 import knn 
 from techniques.asociador_lineal import asociador_lineal as asolin
@@ -11,7 +16,10 @@ from techniques.naive_bayes import naive_bayes as naibay
 import techniques.mapeador as mapea
 
 from numpy import interp
+from PyQt5.QtWidgets import QMessageBox,QLabel
 
+
+# dale run, ya esta importado QtWidgets, dale run, comenta la importacion, si no jala, entonces hay que 
 qtCreatorFile = "main.ui" # Nombre del archivo .ui aqui.
 
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
@@ -24,7 +32,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Área de los Signals y Configuraciones Iniciales
         self.btnArduino.clicked.connect(self.conectar)
-        
+        self.params = json.load(open('serpapi_config.json', 'r'))["params"]
+        self.pointer = 0
         self.tecnicas = self.read_yeison() 
         self.key = 0         
            
@@ -44,6 +53,11 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.lectAnterior = ""
         self.mapeoRango = 2
         self.vp = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        self.imgs = []
+        self.manager = None
+
+        self.animales = []
+        self.params = json.load(open('serpapi_config.json', 'r'))["params"]
 
     def siguiente(self):
         self.puntero += 1
@@ -52,8 +66,9 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.puntero = -1
             self.vp[self.puntero] = int(self.txtRespuesta.text())-1 #Esta no le entendi xd  el vp[ puntero ] = valor
             print(self.vp)
-            knn(self.vp, self.dataset)
-            print(self.vp)
+            r = knn(self.vp, self.dataset)
+             
+            self.MessageResult(r)
             #self.identificar()
             return
         self.vp[self.puntero-1] = int(self.txtRespuesta.text())-1
@@ -124,53 +139,12 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ardWindow.show()
     
 
-    def setInstancia(self):                
-        self.key = self.cbInstancia.currentIndex()
-        self.instancia = self.instancias[self.keyInst[self.key]] 
-
-        archivo, delim, head, index = list(self.instancia.values())       
-        self.dfDataset = mapea.leer_dataset(archivo, delim, eval(head), eval(index))      
-        self.dfDsMap, self.discretizador = mapea.mapear_dataset(self.dfDataset) 
-        print(self.dfDataset, "\n") 
-
-        
+     
     def setTecnica(self):        
         index = self.cbTecnica.currentIndex()
         self.tecnica = str(self.cbTecnica.itemText(index))
         self.funcion = self.tecnicas[self.tecnica]
-
-
-    def identificar(self):
-        self.puntero = -1
-        print("\n----- {} -----".format(self.tecnica))
-        text = (self.instancia_ard.text())
-        #vp = list(map(int, text.split(',')))            
-        vpMap = self.mapearVP(vp)
-        func = "{}({},{})".format(
-            "eval(self.funcion)", "vpMap", "self.dfDsMap")             
-        decision = eval(func)
-        lon = len(self.discretizador) - 1
-        decisionKey = mapea.get_key(self.discretizador[lon], decision)
-        print("Decision: ", decisionKey)
-        print()
         
-
-    def mapearVP(self, vpArduino):
-        #print("\nvp INO:      ",vpArduino)
-        mins = self.dfDataset.min().to_list()
-        maxs = self.dfDataset.max().to_list()
-        
-        vp = list(map(lambda x, y, z: round(x*(z-y)/1023+y, 4), vpArduino, mins, maxs ))
-        #print("vp INO map:  ",vp)
-        
-        
-        dtipos = self.dfDataset.dtypes
-        vpMap = mapea.discretizar_vp(vp, self.discretizador, dtipos)
-        #print("vp mapeado:  ",vpMap)
-        #print()       
-        
-        return vpMap
-
 
     # Timer para el Python
     def execTimer(self):
@@ -193,11 +167,52 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                     self.anterior()
 
 
+
     def listToStr(self, lista):
         listaString = str(lista)
         lon = len(listaString)
         cadena = str(listaString[1: lon-1])
         return cadena
+
+    def MessageResult(self,r):
+        #image1 image2 image3  QLabels       
+        
+        self.pointer = 0
+        for i in range(3):      
+            self.animales.append(r[1][i])    
+        self.setimageAlt()
+
+        res = "VP: {} \nClase: {} ".format(r[0],r[1])
+        ret = QMessageBox.question(self, 'Resultados', res, QMessageBox.Ok)
+
+        
+
+        if ret == QMessageBox.Ok:
+            self.imgs = []
+            self.puntero = -1
+            self.lblPregunta.setText("CONECTE EL ARDUINO Y PRESIONE UN BOTON PARA EMPEZAR")
+            self.lblRespuesta.setText("....")
+        self.animales = []
+
+    def setimageAlt(self):
+        try:
+
+            for i in range(3):
+                url = self.getURL("Animal "+self.animales[i])
+                image = QtGui.QImage()
+                image.loadFromData(requests.get(url).content)
+                exec("self.image{}.setPixmap(QtGui.QPixmap(image))".format(i+1))
+
+        except Exception as e:
+            print(e)
+
+    def getURL(self, buscar):
+        self.params["q"] = buscar
+        print(self.params)
+        search = GoogleSearch(self.params)
+        results = search.get_dict()
+        url = results["images_results"][randint(0, 25)]["thumbnail"]
+        return url
 
 
     def closeEvent(self, event):
