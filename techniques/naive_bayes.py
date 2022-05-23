@@ -94,21 +94,26 @@ def naive_bayes(vectorP, dfDataset):
             probCaso[k] *= probabilidades[i][j][k]
         probCaso[k] = round(probCaso[k], 4)
 
-    decisionCaso = -1
-    auxProb = -1
-    # Buscamos la mayor decision
-    for i in range(len(probCaso)):
-        if(probCaso[i] > auxProb):
-            auxProb = probCaso[i]
-            decisionCaso = i
+    # decisionCaso = -1
+    # auxProb = -1
+    # # Buscamos la mayor decision
+    # for i in range(len(probCaso)):
+    #     if(probCaso[i] > auxProb):
+    #         auxProb = probCaso[i]
+    #         decisionCaso = i
+    
+    zipped = zip([i for i in range(len(probCaso))], probCaso)
+    sorts = sorted(zipped, key=lambda x:x[1], reverse=True)[:3]
+
 
     # print("-"*10,"Resolucion del caso","-"*10)
     print("Caso: ", vectorP)
     # print("                  ", vector_conj[-1])
     # print("Prob de Decision: ", probCaso)
     # decisionClase = list(vector_dic[-1].keys())[decisionCaso]
+    keys = list(vector_dic[-1].keys())
 
-    decisionClase = list(vector_dic[-1].keys())[decisionCaso]    
+    decisionClase = [keys[i[0]] for i in sorts]    
 
     print("Clase:  ", decisionClase)    
     return decisionClase

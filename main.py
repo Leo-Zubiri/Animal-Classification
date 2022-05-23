@@ -5,10 +5,12 @@ import pandas as pd
 # Modulo/clase arduino
 import arduinoWind as ard
 
-from techniques.knn_2 import knn as knn
+from techniques.knn_2 import knn 
 from techniques.asociador_lineal import asociador_lineal as asolin
 from techniques.naive_bayes import naive_bayes as naibay
 import techniques.mapeador as mapea
+
+from numpy import interp
 
 qtCreatorFile = "main.ui" # Nombre del archivo .ui aqui.
 
@@ -25,13 +27,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         
         self.tecnicas = self.read_yeison() 
         self.key = 0         
-                                    
-        
+           
         self.tecnica = list(self.tecnicas.items())[0][0]   
         self.funcion = self.tecnicas[self.tecnica]
         
-        self.cbTecnica.currentIndexChanged.connect(self.setTecnica)
-
         # New Window
         self.ardApp  = QtWidgets.QApplication(sys.argv)
         self.ardWindow = ard.MyApp()
@@ -39,6 +38,72 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.execTimer)
         self.timer.start(10)
+        self.dataset = mapea.leer_dataset("instance/zoo.csv",delimitador="\t")
+        self.puntero = -1
+        self.dickJSON, self.keys = self.read_yeison2()
+        self.lectAnterior = ""
+        self.mapeoRango = 2
+        self.vp = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+
+    def siguiente(self):
+        self.puntero += 1
+
+        if(self.puntero > len(self.keys)-1):  
+            self.puntero = -1
+            self.vp[self.puntero] = int(self.txtRespuesta.text())-1 #Esta no le entendi xd  el vp[ puntero ] = valor
+            print(self.vp)
+            knn(self.vp, self.dataset)
+            print(self.vp)
+            #self.identificar()
+            return
+        self.vp[self.puntero-1] = int(self.txtRespuesta.text())-1
+
+        key = self.keys[self.puntero]
+        pregunta = self.dickJSON[key]["Question"]
+        respuesta = self.dickJSON[key]["TAnswer"]
+        self.mapeoRango = len(respuesta)
+        self.lblPregunta.setText(key+"."+pregunta)
+
+        r = ""
+        for el in respuesta:
+            r += str(el) 
+            r += " "
+
+        self.lblRespuesta.setText(r)
+        print(respuesta)
+        
+
+
+    def anterior(self):
+        self.puntero -= 1
+
+        if(self.puntero < 0):   
+            self.puntero = -1
+            return
+        
+        key = self.keys[self.puntero]
+        pregunta = self.dickJSON[key]["Question"]
+        respuesta = self.dickJSON[key]["TAnswer"]
+        self.mapeoRango = len(respuesta)
+        
+        self.lblPregunta.setText(key+"."+pregunta)
+
+        r = ""
+        for el in respuesta:
+            r += str(el) 
+            r += " "
+
+        self.lblRespuesta.setText(r)
+        print(respuesta)
+       
+    def read_yeison2(self):
+        nombreJSON = 'questions.json'
+        file = open(nombreJSON, 'r')
+        data = json.load(file)
+        file.close()          
+        
+        keys = list(data.keys())     
+        return data, keys
 
 
     def read_yeison(self):
@@ -47,9 +112,12 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         data = json.load(file)
         file.close()
         tecnicas = data['tecnicas']
-        self.cbTecnica.addItems(tecnicas.keys())
-
         return tecnicas
+
+    def mapearResp(self,valor,rango):
+        #O-1023
+        resp = round(interp(valor,[0,1023],[1,rango]))
+        return resp
 
 
     def conectar(self):
@@ -73,9 +141,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
     def identificar(self):
+        self.puntero = -1
         print("\n----- {} -----".format(self.tecnica))
         text = (self.instancia_ard.text())
-        vp = list(map(int, text.split(',')))            
+        #vp = list(map(int, text.split(',')))            
         vpMap = self.mapearVP(vp)
         func = "{}({},{})".format(
             "eval(self.funcion)", "vpMap", "self.dfDsMap")             
@@ -110,10 +179,18 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         if(lect == "Desconectado"):
             self.lblArdState.setText(lect)
             return
-        else:
+        elif lect != self.lectAnterior:
+            self.lectAnterior = lect
             lect = lect.split(" ")
             if len(lect) >= 3:
                 self.lblArdState.setText(lect[0])    
+                self.respMapeada = self.mapearResp(int(lect[0]),self.mapeoRango)
+                self.txtRespuesta.setText(str(self.respMapeada))    
+                if(lect[2] == "1"):
+                    self.siguiente()
+                    
+                elif(lect[1] == "1"):
+                    self.anterior()
 
 
     def listToStr(self, lista):

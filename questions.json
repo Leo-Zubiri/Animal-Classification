@@ -1,0 +1,94 @@
+{
+    "1":{
+        "Question": "Tiene pelo?",
+        "TAnswer": ["1.No","2.Si"]
+    },
+
+    "2":{
+        "Question": "Tiene plumas?",
+        "TAnswer": ["1.No","2.Si"]
+    },
+
+    "3":{
+        "Question": "Es oviparo?",
+        "TAnswer": ["1.No","2.Si"]
+    },
+
+    "4":{
+        "Question": "Es mamifero?",
+        "TAnswer": ["1.No","2.Si"]
+    },
+
+    "5":{
+        "Question": "Puede volar?",
+        "TAnswer": ["1.No","2.Si"]
+    },
+
+    "6":{
+        "Question": "Puede nadar?",
+        "TAnswer": ["1.No","2.Si"]
+    },
+
+    "7":{
+        "Question": "Es depredador?",
+        "TAnswer": ["1.No","2.Si"]
+    },
+
+    "8":{
+        "Question": "Tiene dentadura?",
+        "TAnswer": ["1.No","2.Si"]
+    },
+
+    "9":{
+        "Question": "Tiene columna vertebral?",
+        "TAnswer": ["1.No","2.Si"]
+    },
+
+    "10":{
+        "Question": "Respira?",
+        "TAnswer": ["1.No","2.Si"]
+    },
+
+    "11":{
+        "Question": "Es venenoso?",
+        "TAnswer":["1.No","2.Si"]
+    },
+
+    "12":{
+        "Question": "Tiene aletas?",
+        "TAnswer": ["1.No","2.Si"]
+    },
+
+    "13":{
+        "Question": "Cantidad de patas: ",
+        "TAnswer": [0, 2, 4, 5, 6, 8]
+    },
+
+    "14":{
+        "Question": "Tiene cola? o se la quita pa' comer?",
+        "TAnswer": ["1.No","2.Si"]
+    },
+
+    "15":{
+        "Question": "Es domestico?",
+        "TAnswer": ["1.No","2.Si"]
+    },
+
+    "16":{
+        "Question": "Es tamano gatuno?",
+        "TAnswer": ["1.No","2.Si"]
+    },
+
+    "17":{
+        "Question": "Que tipo de animal es?",
+        "TAnswer": [
+            "1.Vertebrado\n",
+            "2.Ave\n",
+            "3.Reptil\n",
+            "4.Anfibio\n",
+            "5.Peces/Acuatico\n",
+            "6.Insecto\n",
+            "7.Molusco\n"
+        ]
+    }    
+}

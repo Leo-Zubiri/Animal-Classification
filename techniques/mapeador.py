@@ -64,6 +64,24 @@ def mapear_dataset(dfArchivo, mapFloat=True, mapStr=True):
     return dfAC, discretizador
 
 
+def separar_cc2(dfArchivo):
+    """ Separar caracteristicas y clases de nuestra instancia
+
+    Args:
+        dfArchivo (pandas.DataFrame): Dataset de la instancia leida.
+
+    Returns:
+        [([caract], clase), ([caract], clase), ([caract], clase)...]
+    """
+    caract = dfArchivo.iloc[:, :-1].values.tolist()
+    clase = []
+    for i in range(len(dfArchivo)):
+        c = dfArchivo.iloc[i,-1]
+        clase.append(c)
+
+    matriz_cc = list(zip(caract, clase))
+    return matriz_cc
+
 def separar_cc(dfArchivo):
     """ Separar caracteristicas y clases de nuestra instancia
 
